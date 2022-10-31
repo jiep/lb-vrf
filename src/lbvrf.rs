@@ -92,7 +92,7 @@ impl VRF for LBVRF {
         hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
         let mut hasher = Sha512::new();
         Update::update(&mut hasher, hash_input);
-        let digest: VRFHash = hasher.finalize();
+        let digest: Vec<u8> = hasher.finalize().to_vec();
         let b = hash_to_new_basis(digest.as_ref());
 
         let z_p: Vec<Poly32> = proof.z.iter().map(|x| (*x).into()).collect();
@@ -120,7 +120,7 @@ impl VRF for LBVRF {
         assert!(w2.serialize(&mut hash_input).is_ok());
         assert!(proof.v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
-        let mut data:Vec<u8> = [digest.as_ref(), hash_input.as_ref()].concat();
+        let data: Vec<u8> = [digest, hash_input].concat();
         Update::update(&mut hasher, data);
         let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
