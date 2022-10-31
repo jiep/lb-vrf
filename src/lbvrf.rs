@@ -10,7 +10,6 @@ use crate::poly32::Poly32;
 use crate::serde::Serdes;
 use crate::VRF;
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
-use sha2::digest::Update;
 use sha2::{Digest, Sha512};
 use std::convert::TryInto;
 
@@ -91,7 +90,7 @@ impl VRF for LBVRF {
         assert!(pk.serialize(&mut hash_input).is_ok());
         hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
         let mut hasher = Sha512::new();
-        hasher.update(hash_input);
+        Digest::update(&mut hasher, hash_input);
         let digest: VRFHash = hasher.finalize();
         let b = hash_to_new_basis(digest.as_ref());
 
