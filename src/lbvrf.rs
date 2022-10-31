@@ -22,6 +22,8 @@ pub struct Proof {
 
 pub type VRFOutput = Poly32;
 
+pub type VRFHash = sha2::digest::generic_array::GenericArray<u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
+
 pub struct LBVRF;
 
 impl VRF for LBVRF {
@@ -89,7 +91,7 @@ impl VRF for LBVRF {
         hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
         let mut hasher = Sha512::new();
         hasher.update(hash_input);
-        let digest = hasher.finalize();
+        let digest: VRFHash = hasher.finalize();
         let b = hash_to_new_basis(digest.as_ref());
 
         let z_p: Vec<Poly32> = proof.z.iter().map(|x| (*x).into()).collect();
@@ -118,7 +120,7 @@ impl VRF for LBVRF {
         assert!(proof.v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
         hasher.update([digest.as_ref(), hash_input.as_ref()].concat());
-        let digest = hasher.finalize();
+        let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
         if c == proof.c {
             Ok(Some(proof.v))
@@ -218,7 +220,7 @@ pub(crate) fn prove_with_rs<Blob: AsRef<[u8]>>(
     hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
     let mut hasher = Sha512::new();
     hasher.update(hash_input);
-    let digest = hasher.finalize();
+    let digest: VRFHash = hasher.finalize();
     let b = hash_to_new_basis(digest.as_ref());
 
     // step 2: v = <b, s>
@@ -251,7 +253,7 @@ pub(crate) fn prove_with_rs<Blob: AsRef<[u8]>>(
         assert!(v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
         hasher.update([digest.as_ref(), hash_input.as_ref()].concat());
-        let digest = hasher.finalize();
+        let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
 
         let mut z = y;
