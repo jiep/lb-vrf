@@ -22,7 +22,7 @@ pub struct Proof {
 
 pub type VRFOutput = Poly32;
 
-pub type VRFHash = sha2::digest::generic_array::GenericArray<u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
+pub type VRFHash = sha2::digest::generic_array::GenericArray<std::primitive::u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
 
 pub struct LBVRF;
 
