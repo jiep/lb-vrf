@@ -10,6 +10,7 @@ use crate::poly32::Poly32;
 use crate::serde::Serdes;
 use crate::VRF;
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
+use sha2::digest::Update;
 use sha2::{Digest, Sha512};
 use std::convert::TryInto;
 
@@ -22,7 +23,7 @@ pub struct Proof {
 
 pub type VRFOutput = Poly32;
 
-pub type VRFHash = sha2::digest::generic_array::GenericArray<std::primitive::u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
+pub type VRFHash = sha2::digest::generic_array::GenericArray<u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
 
 pub struct LBVRF;
 
@@ -119,7 +120,8 @@ impl VRF for LBVRF {
         assert!(w2.serialize(&mut hash_input).is_ok());
         assert!(proof.v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
-        hasher.update([digest.as_ref(), hash_input.as_ref()].concat());
+        let mut data: Vec<u8> = [digest.as_ref(), hash_input.as_ref()].concat();
+        Digest::update(&mut hasher, data);
         let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
         if c == proof.c {
