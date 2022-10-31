@@ -255,7 +255,7 @@ pub(crate) fn prove_with_rs<Blob: AsRef<[u8]>>(
         assert!(v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
         let data: Vec<u8> = [digest.as_ref(), hash_input.as_ref()].concat();
-        Digest::update(&mut hasher, data);
+        Update::update(&mut hasher, data);
         let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
 
