@@ -16,9 +16,9 @@ use std::convert::TryInto;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Proof {
-    pub(crate) z: [Poly256; 9],
-    pub(crate) c: Poly256,
-    pub(crate) v: VRFOutput,
+    pub z: [Poly256; 9],
+    pub c: Poly256,
+    pub v: VRFOutput,
 }
 
 pub type VRFOutput = Poly32;
