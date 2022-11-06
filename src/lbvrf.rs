@@ -10,17 +10,20 @@ use crate::poly32::Poly32;
 use crate::serde::Serdes;
 use crate::VRF;
 use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
+use sha2::digest::Update;
 use sha2::{Digest, Sha512};
 use std::convert::TryInto;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Proof {
-    pub(crate) z: [Poly256; 9],
-    pub(crate) c: Poly256,
-    pub(crate) v: VRFOutput,
+    pub z: [Poly256; 9],
+    pub c: Poly256,
+    pub v: VRFOutput,
 }
 
 pub type VRFOutput = Poly32;
+
+pub type VRFHash = sha2::digest::generic_array::GenericArray<u8, sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UInt<sha2::digest::generic_array::typenum::UTerm, sha2::digest::consts::B1>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>, sha2::digest::consts::B0>>;
 
 pub struct LBVRF;
 
@@ -88,8 +91,8 @@ impl VRF for LBVRF {
         assert!(pk.serialize(&mut hash_input).is_ok());
         hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
         let mut hasher = Sha512::new();
-        hasher.update(hash_input);
-        let digest = hasher.finalize();
+        Update::update(&mut hasher, hash_input);
+        let digest: Vec<u8> = hasher.finalize().to_vec();
         let b = hash_to_new_basis(digest.as_ref());
 
         let z_p: Vec<Poly32> = proof.z.iter().map(|x| (*x).into()).collect();
@@ -117,8 +120,9 @@ impl VRF for LBVRF {
         assert!(w2.serialize(&mut hash_input).is_ok());
         assert!(proof.v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
-        hasher.update([digest.as_ref(), hash_input.as_ref()].concat());
-        let digest = hasher.finalize();
+        let data: Vec<u8> = [digest, hash_input].concat();
+        Update::update(&mut hasher, data);
+        let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
         if c == proof.c {
             Ok(Some(proof.v))
@@ -132,8 +136,8 @@ impl VRF for LBVRF {
 
 pub(crate) fn hash_to_new_basis(input: &[u8]) -> [Poly32; 9] {
     let mut hasher = Sha512::new();
-    hasher.update([input, "domain seperator: hash to basis".as_ref()].concat());
-    let digest = hasher.finalize();
+    Update::update(&mut hasher, [input, "domain seperator: hash to basis".as_ref()].concat());
+    let digest: VRFHash = hasher.finalize();
     let seed: [u8; 32] = digest.as_slice()[0..32].try_into().expect("Wrong length");
     let mut rng = ChaCha20Rng::from_seed(seed);
     let mut res = [Poly32::zero(); 9];
@@ -145,8 +149,8 @@ pub(crate) fn hash_to_new_basis(input: &[u8]) -> [Poly32; 9] {
 
 pub(crate) fn hash_to_challenge(input: &[u8]) -> Poly256 {
     let mut hasher = Sha512::new();
-    hasher.update([input, "domain seperator: hash to challenge".as_ref()].concat());
-    let digest = hasher.finalize();
+    Update::update(&mut hasher, [input, "domain seperator: hash to challenge".as_ref()].concat());
+    let digest: VRFHash = hasher.finalize();
     let mut res = [0i64; 256];
     let mut sign_pt = 0;
     let mut coeff_pt = 0;
@@ -217,8 +221,8 @@ pub(crate) fn prove_with_rs<Blob: AsRef<[u8]>>(
     assert!(pk.serialize(&mut hash_input).is_ok());
     hash_input = [pp.digest.as_ref(), hash_input.as_ref(), message.as_ref()].concat();
     let mut hasher = Sha512::new();
-    hasher.update(hash_input);
-    let digest = hasher.finalize();
+    Update::update(&mut hasher, hash_input);
+    let digest: Vec<u8> = hasher.finalize().to_vec();
     let b = hash_to_new_basis(digest.as_ref());
 
     // step 2: v = <b, s>
@@ -250,8 +254,9 @@ pub(crate) fn prove_with_rs<Blob: AsRef<[u8]>>(
         assert!(w2.serialize(&mut hash_input).is_ok());
         assert!(v.serialize(&mut hash_input).is_ok());
         let mut hasher = Sha512::new();
-        hasher.update([digest.as_ref(), hash_input.as_ref()].concat());
-        let digest = hasher.finalize();
+        let data: Vec<u8> = [digest.clone(), hash_input].concat();
+        Update::update(&mut hasher, data);
+        let digest: VRFHash = hasher.finalize();
         let c = hash_to_challenge(digest.as_ref());
 
         let mut z = y;
